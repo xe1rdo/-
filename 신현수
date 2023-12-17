@@ -1,0 +1,169 @@
+my_schedule_app/
+├── templates/
+│   └── index.html
+├── app.py
+└── requirements.txt
+from flask import Flask, render_template, request, redirect, url_for
+
+app = Flask(__name__)
+
+schedules = []
+
+@app.route('/')
+def index():
+    return render_template('index.html', schedules=schedules)
+
+@app.route('/add', methods=['POST'])
+def add_schedule():
+    title = request.form.get('title')
+    date = request.form.get('date')
+    schedules.append({'title': title, 'date': date})
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule App</title>
+</head>
+<body>
+    <h1>Schedule App</h1>
+    <ul>
+        {% for schedule in schedules %}
+            <li>{{ schedule.title }} - {{ schedule.date }}</li>
+        {% endfor %}
+    </ul>
+    <form action="/add" method="post">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="date">Date:</label>
+        <input type="text" id="date" name="date" required>
+        <button type="submit">Add Schedule</button>
+    </form>
+</body>
+</html>
+python app.py
+flutter create my_schedule_app
+cd my_schedule_app
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.3.3
+// lib/schedule.dart
+class Schedule {
+  String title;
+  String date;
+
+  Schedule({required this.title, required this.date});
+}
+
+// lib/schedule_list.dart
+import 'package:flutter/material.dart';
+
+class ScheduleList extends StatelessWidget {
+  final List<Schedule> schedules;
+
+  ScheduleList({required this.schedules});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: schedules.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(schedules[index].title),
+          subtitle: Text(schedules[index].date),
+        );
+      },
+    );
+  }
+}
+
+// lib/schedule_form.dart
+import 'package:flutter/material.dart';
+
+class ScheduleForm extends StatelessWidget {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
+  final Function(Schedule) onSubmit;
+
+  ScheduleForm({required this.onSubmit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          controller: titleController,
+          decoration: InputDecoration(labelText: 'Title'),
+        ),
+        TextField(
+          controller: dateController,
+          decoration: InputDecoration(labelText: 'Date'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            onSubmit(
+              Schedule(
+                title: titleController.text,
+                date: dateController.text,
+              ),
+            );
+          },
+          child: Text('Add Schedule'),
+        ),
+      ],
+    );
+  }
+}
+
+// lib/main.dart
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  List<Schedule> schedules = [];
+
+  void addSchedule(Schedule schedule) {
+    setState(() {
+      schedules.add(schedule);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Schedule App'),
+      ),
+      body: Column(
+        children: [
+          ScheduleForm(
+            onSubmit: addSchedule,
+          ),
+          ScheduleList(schedules: schedules),
+        ],
+      ),
+    );
+  }
+}
